@@ -76,12 +76,16 @@ if (!rootElement) {
 }
 
 console.log('Starting app initialization...')
+console.log('Router:', router)
+console.log('QueryClient:', queryClient)
 
 try {
   console.log('Creating root...')
   const root = createRoot(rootElement)
   
   console.log('Rendering app...')
+  
+  // Test if we can render something simple first
   root.render(
     <StrictMode>
       <QueryClientProvider client={queryClient}>
@@ -92,13 +96,29 @@ try {
   )
   
   console.log('App rendered successfully!')
+  
+  // Verify the root element has content after a short delay
+  setTimeout(() => {
+    if (rootElement.children.length === 0) {
+      console.error('Root element is empty after render!')
+      rootElement.innerHTML = `
+        <div style="padding: 2rem; text-align: center; font-family: system-ui; background: white; min-height: 100vh;">
+          <h1 style="color: #dc2626;">Render Issue Detected</h1>
+          <p>The app rendered but no content appeared. Check console for errors.</p>
+          <button onclick="window.location.reload()" style="margin-top: 1rem; padding: 0.5rem 1rem; background: #3b82f6; color: white; border: none; border-radius: 0.25rem; cursor: pointer;">Reload Page</button>
+        </div>
+      `
+    }
+  }, 1000)
 } catch (error) {
   console.error('Failed to render app:', error)
+  console.error('Error stack:', error instanceof Error ? error.stack : 'No stack')
   rootElement.innerHTML = `
     <div style="padding: 2rem; text-align: center; font-family: system-ui; background: white; min-height: 100vh;">
       <h1 style="color: #dc2626;">Application Error</h1>
       <p>Failed to initialize the application. Please check the console for details.</p>
       <p style="color: #666; font-size: 0.875rem; margin-top: 1rem;">${error instanceof Error ? error.message : 'Unknown error'}</p>
+      <pre style="text-align: left; background: #f3f4f6; padding: 1rem; border-radius: 0.25rem; margin-top: 1rem; overflow: auto;">${error instanceof Error ? error.stack : String(error)}</pre>
       <button onclick="window.location.reload()" style="margin-top: 1rem; padding: 0.5rem 1rem; background: #3b82f6; color: white; border: none; border-radius: 0.25rem; cursor: pointer;">Reload Page</button>
     </div>
   `
