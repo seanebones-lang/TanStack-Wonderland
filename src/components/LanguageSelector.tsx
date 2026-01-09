@@ -15,7 +15,7 @@ export function LanguageSelector() {
   useEffect(() => {
     // Try to load i18n dynamically
     import('react-i18next')
-      .then((module) => {
+      .then(() => {
         setI18nAvailable(true)
         // If i18n is available, we could use it here
         // For now, just mark it as available
@@ -35,7 +35,7 @@ export function LanguageSelector() {
     // Try to update i18n if available
     if (i18nAvailable) {
       import('react-i18next')
-        .then((module) => {
+        .then(() => {
           // i18n would be initialized by now if available
         })
         .catch(() => {
