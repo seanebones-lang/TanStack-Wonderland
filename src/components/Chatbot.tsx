@@ -226,7 +226,7 @@ async function callGrokAPI(message: string, conversationHistory: Message[]): Pro
       const errorText = await response.text()
       console.error('Grok API error:', response.status, errorText)
       // Fallback to mock if API fails
-      return mockGrokResponse(message, conversationHistory)
+      return mockGrokResponse(message)
     }
 
     const data = await response.json()

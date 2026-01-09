@@ -91,14 +91,16 @@ export async function initAxe(): Promise<void> {
     // Dynamically import axe-core if available
     const axe = await import('axe-core')
     if (axe.default) {
-      // Configure axe
-      axe.default.configure({
+      // Configure axe - rules configuration format may vary by version
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const axeConfig: any = {
         rules: {
           'color-contrast': { enabled: true },
           'keyboard-navigation': { enabled: true },
           'aria-required-attributes': { enabled: true },
         },
-      })
+      }
+      axe.default.configure(axeConfig)
     }
   } catch (error) {
     // axe-core not available, skip
