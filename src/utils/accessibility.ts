@@ -36,7 +36,7 @@ export function isKeyboardAccessible(element: HTMLElement): boolean {
  * Check color contrast ratio (simplified)
  * Returns true if contrast is likely sufficient (WCAG AA)
  */
-export function hasSufficientContrast(foreground: string, background: string): boolean {
+export function hasSufficientContrast(_foreground: string, _background: string): boolean {
   // Simplified check - in production, use a proper contrast calculation library
   // This is a placeholder that should be replaced with actual contrast calculation
   return true // Placeholder
