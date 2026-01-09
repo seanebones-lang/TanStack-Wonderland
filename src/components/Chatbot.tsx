@@ -191,7 +191,7 @@ async function callGrokAPI(message: string, conversationHistory: Message[]): Pro
   
   if (!apiKey) {
     // Fallback to mock responses if no API key is configured
-    return mockGrokResponse(message, conversationHistory)
+    return mockGrokResponse(message)
   }
 
   try {
@@ -234,11 +234,11 @@ async function callGrokAPI(message: string, conversationHistory: Message[]): Pro
   } catch (error) {
     console.error('Grok API error:', error)
     // Fallback to mock response on network errors
-    return mockGrokResponse(message, conversationHistory)
+    return mockGrokResponse(message)
   }
 }
 
-function mockGrokResponse(message: string, conversationHistory: Message[]): string {
+function mockGrokResponse(message: string): string {
   // Mock responses for development/testing
   const lowerMessage = message.toLowerCase()
   
