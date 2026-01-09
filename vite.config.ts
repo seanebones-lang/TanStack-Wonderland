@@ -2,7 +2,9 @@ import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import { TanStackRouterVite } from '@tanstack/router-plugin/vite'
 import path from 'path'
-import { visualizer } from 'vite-bundle-visualizer'
+// @ts-ignore - vite-bundle-visualizer types may not be available
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const visualizer = require('vite-bundle-visualizer')
 
 // https://vitejs.dev/config/
 export default defineConfig({
