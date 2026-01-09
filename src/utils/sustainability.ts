@@ -125,21 +125,6 @@ Sustainability Report:
 
 export const sustainabilityTracker = new SustainabilityTracker()
 
-// Track initial page load
-if (typeof window !== 'undefined') {
-  sustainabilityTracker.trackPageLoad()
-
-  // Track data transfer via fetch interception (simplified)
-  const originalFetch = window.fetch
-  window.fetch = async function (...args) {
-    const response = await originalFetch(...args)
-    
-    // Estimate response size (headers + body)
-    const contentLength = response.headers.get('content-length')
-    if (contentLength) {
-      sustainabilityTracker.trackDataTransfer(parseInt(contentLength, 10))
-    }
-    
-    return response
-  }
-}
+// Track initial page load - only if window is available
+// Note: trackPageLoad() should be called explicitly from main.tsx
+// We don't intercept fetch here to avoid potential issues

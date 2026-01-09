@@ -13,6 +13,7 @@ import { analytics } from './utils/analytics'
 import { sustainabilityTracker } from './utils/sustainability'
 
 // Initialize error tracking and performance monitoring (with error handling)
+// Wrap each initialization separately to prevent one failure from blocking others
 try {
   errorTracker.init({
     enabled: !import.meta.env.DEV,
@@ -20,20 +21,30 @@ try {
       appVersion: '1.0.0',
     },
   })
+} catch (error) {
+  console.warn('Failed to initialize error tracker:', error)
+}
 
+try {
   performanceMonitor.init({
     enabled: !import.meta.env.DEV,
   })
+} catch (error) {
+  console.warn('Failed to initialize performance monitor:', error)
+}
 
-  // Initialize analytics
+try {
   analytics.init({
     enabled: !import.meta.env.DEV,
   })
+} catch (error) {
+  console.warn('Failed to initialize analytics:', error)
+}
 
-  // Track initial page load for sustainability
+try {
   sustainabilityTracker.trackPageLoad()
 } catch (error) {
-  console.warn('Failed to initialize monitoring tools:', error)
+  console.warn('Failed to track page load:', error)
 }
 
 // Register Service Worker for PWA
@@ -50,13 +61,28 @@ if ('serviceWorker' in navigator && !import.meta.env.DEV) {
   })
 }
 
+// Add global error handler
+window.addEventListener('error', (event) => {
+  console.error('Global error:', event.error)
+})
+
+window.addEventListener('unhandledrejection', (event) => {
+  console.error('Unhandled promise rejection:', event.reason)
+})
+
 const rootElement = document.getElementById('root')
 if (!rootElement) {
   throw new Error('Root element not found')
 }
 
+console.log('Starting app initialization...')
+
 try {
-  createRoot(rootElement).render(
+  console.log('Creating root...')
+  const root = createRoot(rootElement)
+  
+  console.log('Rendering app...')
+  root.render(
     <StrictMode>
       <QueryClientProvider client={queryClient}>
         <RouterProvider router={router} />
@@ -64,13 +90,16 @@ try {
       </QueryClientProvider>
     </StrictMode>,
   )
+  
+  console.log('App rendered successfully!')
 } catch (error) {
   console.error('Failed to render app:', error)
   rootElement.innerHTML = `
-    <div style="padding: 2rem; text-align: center; font-family: system-ui;">
-      <h1>Application Error</h1>
-      <p>Failed to initialize the application. Please refresh the page.</p>
-      <p style="color: #666; font-size: 0.875rem;">${error instanceof Error ? error.message : 'Unknown error'}</p>
+    <div style="padding: 2rem; text-align: center; font-family: system-ui; background: white; min-height: 100vh;">
+      <h1 style="color: #dc2626;">Application Error</h1>
+      <p>Failed to initialize the application. Please check the console for details.</p>
+      <p style="color: #666; font-size: 0.875rem; margin-top: 1rem;">${error instanceof Error ? error.message : 'Unknown error'}</p>
+      <button onclick="window.location.reload()" style="margin-top: 1rem; padding: 0.5rem 1rem; background: #3b82f6; color: white; border: none; border-radius: 0.25rem; cursor: pointer;">Reload Page</button>
     </div>
   `
 }
