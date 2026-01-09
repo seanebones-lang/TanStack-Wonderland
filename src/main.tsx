@@ -4,17 +4,7 @@ import { QueryClientProvider } from '@tanstack/react-query'
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools'
 import { RouterProvider } from '@tanstack/react-router'
 import './index.css'
-// Conditionally import i18n config to prevent blocking app initialization
-if (typeof window !== 'undefined') {
-  try {
-    import('./i18n/config').catch(() => {
-      // i18n not available, continue without it
-      console.warn('i18n config not available, continuing without translations')
-    })
-  } catch {
-    // Ignore i18n errors
-  }
-}
+// Don't import i18n config - it's optional and will be loaded by LanguageSelector if needed
 import { router } from './router'
 import { queryClient } from './queryClient'
 import { errorTracker } from './utils/errorTracking'
