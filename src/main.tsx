@@ -85,11 +85,24 @@ try {
   
   console.log('Rendering app...')
   
-  // Test if we can render something simple first
   root.render(
     <StrictMode>
       <QueryClientProvider client={queryClient}>
-        <RouterProvider router={router} />
+        <RouterProvider 
+          router={router}
+          defaultErrorComponent={({ error }) => (
+            <div style={{ padding: '2rem', textAlign: 'center', minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column' }}>
+              <h1 style={{ color: '#dc2626', marginBottom: '1rem' }}>Router Error</h1>
+              <p>{error?.message || 'Unknown router error'}</p>
+              <button 
+                onClick={() => window.location.reload()} 
+                style={{ marginTop: '1rem', padding: '0.5rem 1rem', background: '#3b82f6', color: 'white', border: 'none', borderRadius: '0.25rem', cursor: 'pointer' }}
+              >
+                Reload Page
+              </button>
+            </div>
+          )}
+        />
         {import.meta.env.DEV && <ReactQueryDevtools initialIsOpen={false} />}
       </QueryClientProvider>
     </StrictMode>,
@@ -102,14 +115,17 @@ try {
     if (rootElement.children.length === 0) {
       console.error('Root element is empty after render!')
       rootElement.innerHTML = `
-        <div style="padding: 2rem; text-align: center; font-family: system-ui; background: white; min-height: 100vh;">
-          <h1 style="color: #dc2626;">Render Issue Detected</h1>
+        <div style="padding: 2rem; text-align: center; font-family: system-ui; background: white; min-height: 100vh; display: flex; align-items: center; justify-content: center; flex-direction: column;">
+          <h1 style="color: #dc2626; margin-bottom: 1rem;">Render Issue Detected</h1>
           <p>The app rendered but no content appeared. Check console for errors.</p>
+          <p style="color: #666; font-size: 0.875rem; margin-top: 0.5rem;">Open browser console (F12) to see detailed error messages.</p>
           <button onclick="window.location.reload()" style="margin-top: 1rem; padding: 0.5rem 1rem; background: #3b82f6; color: white; border: none; border-radius: 0.25rem; cursor: pointer;">Reload Page</button>
         </div>
       `
+    } else {
+      console.log('Root element has content:', rootElement.children.length, 'children')
     }
-  }, 1000)
+  }, 2000)
 } catch (error) {
   console.error('Failed to render app:', error)
   console.error('Error stack:', error instanceof Error ? error.stack : 'No stack')
