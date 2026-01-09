@@ -7,10 +7,12 @@ import {
   getFilteredRowModel,
   createColumnHelper,
   type SortingState,
+  type VisibilityState,
+  type RowSelectionState,
   flexRender,
 } from '@tanstack/react-table'
 import { useVirtualizer } from '@tanstack/react-virtual'
-import { useMemo, useRef, useState } from 'react'
+import { useMemo, useRef, useState, useEffect } from 'react'
 
 interface Pokemon {
   name: string
@@ -38,6 +40,20 @@ const fetchPokemon = async ({ pageParam = 0 }): Promise<PokemonResponse & { next
 
 const columnHelper = createColumnHelper<Pokemon>()
 
+// Export function
+const exportToCSV = (data: Pokemon[]) => {
+  const headers = ['Name', 'URL']
+  const rows = data.map((p) => [p.name, p.url])
+  const csv = [headers, ...rows].map((row) => row.join(',')).join('\n')
+  const blob = new Blob([csv], { type: 'text/csv' })
+  const url = URL.createObjectURL(blob)
+  const a = document.createElement('a')
+  a.href = url
+  a.download = 'pokemon-export.csv'
+  a.click()
+  URL.revokeObjectURL(url)
+}
+
 export const Route = createFileRoute('/pokemon-table')({
   component: PokemonTable,
 })
@@ -45,6 +61,9 @@ export const Route = createFileRoute('/pokemon-table')({
 function PokemonTable() {
   const [sorting, setSorting] = useState<SortingState>([])
   const [globalFilter, setGlobalFilter] = useState('')
+  const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({})
+  const [rowSelection, setRowSelection] = useState<RowSelectionState>({})
+  const [isColumnMenuOpen, setIsColumnMenuOpen] = useState(false)
   const parentRef = useRef<HTMLDivElement>(null)
 
   const { data, fetchNextPage, isFetchingNextPage, isPending, error } = useInfiniteQuery({
@@ -62,6 +81,29 @@ function PokemonTable() {
 
   const columns = useMemo(
     () => [
+      columnHelper.display({
+        id: 'select',
+        header: ({ table }) => (
+          <input
+            type="checkbox"
+            checked={table.getIsAllRowsSelected()}
+            onChange={table.getToggleAllRowsSelectedHandler()}
+            aria-label="Select all rows"
+            className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+          />
+        ),
+        cell: ({ row }) => (
+          <input
+            type="checkbox"
+            checked={row.getIsSelected()}
+            onChange={row.getToggleSelectedHandler()}
+            aria-label={`Select ${row.original.name}`}
+            className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+          />
+        ),
+        enableSorting: false,
+        enableHiding: false,
+      }),
       columnHelper.accessor('name', {
         header: 'Name',
         cell: (info) => (
@@ -77,7 +119,8 @@ function PokemonTable() {
             href={info.getValue()}
             target="_blank"
             rel="noopener noreferrer"
-            className="text-blue-600 dark:text-blue-400 hover:underline text-sm"
+            className="text-blue-600 dark:text-blue-400 hover:underline text-sm break-all"
+            aria-label={`Open ${info.row.original.name} details`}
           >
             {info.getValue()}
           </a>
@@ -93,13 +136,41 @@ function PokemonTable() {
     getCoreRowModel: getCoreRowModel(),
     getSortedRowModel: getSortedRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
+    enableRowSelection: true,
+    enableMultiSort: true,
     onSortingChange: setSorting,
     onGlobalFilterChange: setGlobalFilter,
+    onColumnVisibilityChange: setColumnVisibility,
+    onRowSelectionChange: setRowSelection,
     state: {
       sorting,
       globalFilter,
+      columnVisibility,
+      rowSelection,
     },
   })
+
+  const selectedRows = table.getSelectedRowModel().rows.map((row) => row.original)
+
+  const handleExport = () => {
+    if (selectedRows.length > 0) {
+      exportToCSV(selectedRows)
+    } else {
+      exportToCSV(flatData)
+    }
+  }
+
+  // Close column menu when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target as HTMLElement
+      if (!target.closest('[aria-expanded]') && isColumnMenuOpen) {
+        setIsColumnMenuOpen(false)
+      }
+    }
+    document.addEventListener('click', handleClickOutside)
+    return () => document.removeEventListener('click', handleClickOutside)
+  }, [isColumnMenuOpen])
 
   const { rows } = table.getRowModel()
 
@@ -114,7 +185,7 @@ function PokemonTable() {
 
   if (isPending) {
     return (
-      <div className="flex justify-center items-center py-12">
+      <div className="flex justify-center items-center py-12" role="status" aria-label="Loading Pokemon table">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
       </div>
     )
@@ -122,8 +193,14 @@ function PokemonTable() {
 
   if (error) {
     return (
-      <div className="text-red-600 dark:text-red-400 text-center py-12">
-        Error loading Pokemon: {error.message}
+      <div role="alert" className="text-red-600 dark:text-red-400 text-center py-12">
+        <p className="text-lg font-semibold mb-2">Error loading Pokemon: {error.message}</p>
+        <button
+          onClick={() => window.location.reload()}
+          className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
+        >
+          Retry
+        </button>
       </div>
     )
   }
@@ -134,14 +211,79 @@ function PokemonTable() {
         Pokemon Table
       </h1>
 
-      <div className="mb-4">
-        <input
-          type="text"
-          value={globalFilter}
-          onChange={(e) => setGlobalFilter(e.target.value)}
-          placeholder="Search Pokemon..."
-          className="w-full max-w-md px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
-        />
+      {/* Toolbar */}
+      <div className="mb-4 flex flex-wrap gap-4 items-center">
+        <div className="flex-1 min-w-[200px]">
+          <input
+            type="text"
+            value={globalFilter}
+            onChange={(e) => setGlobalFilter(e.target.value)}
+            placeholder="Search Pokemon..."
+            aria-label="Search Pokemon"
+            className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          />
+        </div>
+        
+        <div className="flex gap-2 items-center">
+          {selectedRows.length > 0 && (
+            <span className="text-sm text-gray-600 dark:text-gray-400">
+              {selectedRows.length} selected
+            </span>
+          )}
+          
+          {/* Column Visibility Menu */}
+          <div className="relative">
+            <button
+              onClick={() => setIsColumnMenuOpen(!isColumnMenuOpen)}
+              className="px-4 py-2 bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-gray-100 rounded hover:bg-gray-300 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              aria-label="Toggle column visibility"
+              aria-expanded={isColumnMenuOpen}
+            >
+              👁 Columns
+            </button>
+            {isColumnMenuOpen && (
+              <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg shadow-lg z-20">
+                <div className="p-2">
+                  <label className="flex items-center px-2 py-1 hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={table.getIsAllColumnsVisible()}
+                      onChange={table.getToggleAllColumnsVisibilityHandler()}
+                      className="mr-2 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                    />
+                    <span className="text-sm text-gray-900 dark:text-gray-100">Toggle All</span>
+                  </label>
+                  {table.getAllColumns().filter((col) => col.getCanHide()).map((column) => (
+                    <label
+                      key={column.id}
+                      className="flex items-center px-2 py-1 hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer"
+                    >
+                      <input
+                        type="checkbox"
+                        checked={column.getIsVisible()}
+                        onChange={column.getToggleVisibilityHandler()}
+                        className="mr-2 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                      />
+                      <span className="text-sm text-gray-900 dark:text-gray-100 capitalize">
+                        {column.id}
+                      </span>
+                    </label>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Export Button */}
+          <button
+            onClick={handleExport}
+            disabled={flatData.length === 0}
+            className="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600 disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-green-500"
+            aria-label="Export to CSV"
+          >
+            📥 Export {selectedRows.length > 0 ? `(${selectedRows.length})` : ''}
+          </button>
+        </div>
       </div>
 
       <div
@@ -162,10 +304,25 @@ function PokemonTable() {
                       {header.isPlaceholder
                         ? null
                         : header.column.getCanSort() ? (
-                            <>
-                              {header.column.getIsSorted() === 'asc' ? '↑' : header.column.getIsSorted() === 'desc' ? '↓' : '⇅'}
+                            <button
+                              onClick={header.column.getToggleSortingHandler()}
+                              className="flex items-center gap-1 hover:text-blue-600 dark:hover:text-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-500 rounded"
+                              aria-label={`Sort by ${header.column.id}`}
+                            >
+                              {header.column.getIsSorted() === 'asc' ? (
+                                <span aria-label="Sorted ascending">↑</span>
+                              ) : header.column.getIsSorted() === 'desc' ? (
+                                <span aria-label="Sorted descending">↓</span>
+                              ) : (
+                                <span aria-label="Not sorted">⇅</span>
+                              )}
                               {flexRender(header.column.columnDef.header, header.getContext())}
-                            </>
+                              {header.column.getIsSorted() && sorting.length > 1 && (
+                                <span className="text-xs text-gray-500">
+                                  {sorting.findIndex((s) => s.id === header.column.id) + 1}
+                                </span>
+                              )}
+                            </button>
                           ) : (
                             flexRender(header.column.columnDef.header, header.getContext())
                           )}
@@ -195,7 +352,9 @@ function PokemonTable() {
                     width: '100%',
                     transform: `translateY(${virtualRow.start}px)`,
                   }}
-                  className="border-b border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800"
+                  className={`border-b border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800 ${
+                    row.getIsSelected() ? 'bg-blue-50 dark:bg-blue-900/20' : ''
+                  }`}
                 >
                   {row.getVisibleCells().map((cell) => (
                     <td key={cell.id} className="px-4 py-3">
@@ -215,14 +374,22 @@ function PokemonTable() {
         </div>
       )}
 
+      {/* Load More */}
       <div className="mt-4 text-center">
         <button
           onClick={() => fetchNextPage()}
           disabled={isFetchingNextPage || !data?.pages[data.pages.length - 1].next}
-          className="btn disabled:opacity-50 disabled:cursor-not-allowed"
+          className="btn disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-blue-500"
+          aria-label="Load more Pokemon"
         >
           {isFetchingNextPage ? 'Loading...' : 'Load More'}
         </button>
+      </div>
+
+      {/* Results Count */}
+      <div className="mt-4 text-sm text-gray-600 dark:text-gray-400 text-center">
+        Showing {rows.length} of {flatData.length} Pokemon
+        {globalFilter && ` matching "${globalFilter}"`}
       </div>
     </div>
   )

@@ -1,8 +1,8 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { useForm } from '@tanstack/react-form'
-import { useMutation, useQueryClient } from '@tanstack/react-query'
+import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query'
 import { z } from 'zod'
-import { useState } from 'react'
+import { useState, useMemo, useRef, useEffect } from 'react'
 
 const teamSchema = z.object({
   team: z.array(z.string().min(1, 'Pokemon name is required')).min(6, 'You must select at least 6 Pokemon'),
@@ -22,20 +22,214 @@ const submitTeam = async (team: string[]): Promise<{ success: boolean; message: 
   }
 }
 
+// Search Pokemon for autocomplete
+const searchPokemon = async (query: string): Promise<string[]> => {
+  if (query.length < 2) return []
+  const response = await fetch(`https://pokeapi.co/api/v2/pokemon?limit=1000`)
+  if (!response.ok) return []
+  const data = await response.json()
+  return data.results
+    .map((p: { name: string }) => p.name)
+    .filter((name: string) => name.toLowerCase().includes(query.toLowerCase()))
+    .slice(0, 10)
+}
+
+// Autocomplete Field Component
+function PokemonAutocompleteField({
+  index,
+  form,
+  searchQuery,
+  onSearchChange,
+  isActive,
+  onFocus,
+  onBlur,
+  teamValues,
+}: {
+  index: number
+  form: ReturnType<typeof useForm<TeamForm>>
+  searchQuery: string
+  onSearchChange: (query: string) => void
+  isActive: boolean
+  onFocus: () => void
+  onBlur: () => void
+  teamValues: string[]
+}) {
+  const inputRef = useRef<HTMLInputElement>(null)
+  const suggestionsRef = useRef<HTMLDivElement>(null)
+
+  const { data: suggestions = [], isPending: isSearching } = useQuery({
+    queryKey: ['pokemon', 'search', searchQuery],
+    queryFn: () => searchPokemon(searchQuery),
+    enabled: searchQuery.length >= 2 && isActive,
+    staleTime: 5 * 60 * 1000,
+  })
+
+  const filteredSuggestions = useMemo(() => {
+    return suggestions.filter(
+      (name) =>
+        !teamValues.includes(name) || name === form.state.values.team[index]
+    )
+  }, [suggestions, teamValues, index, form.state.values.team])
+
+  const isDuplicate = useMemo(() => {
+    const value = form.state.values.team[index]
+    return value && teamValues.filter((p) => p === value).length > 1
+  }, [teamValues, index])
+
+  return (
+    <form.Field
+      name={`team[${index}]` as const}
+      validators={{
+        onChange: ({ value }) => {
+          if (!value || value.length === 0) {
+            return 'Pokemon name is required'
+          }
+          // Check for duplicates
+          const duplicates = teamValues.filter((p) => p === value && p !== '')
+          if (duplicates.length > 1) {
+            return 'This Pokemon is already in your team'
+          }
+          return undefined
+        },
+      }}
+    >
+      {(field) => (
+        <div className="relative">
+          <label
+            htmlFor={`pokemon-${index}`}
+            className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+          >
+            Pokemon {index + 1}
+            {isDuplicate && (
+              <span className="ml-2 text-red-600 dark:text-red-400 text-xs">
+                (Duplicate)
+              </span>
+            )}
+          </label>
+          <div className="relative">
+            <input
+              id={`pokemon-${index}`}
+              ref={inputRef}
+              value={field.state.value}
+              onChange={(e) => {
+                const value = e.target.value
+                field.handleChange(value)
+                onSearchChange(value)
+              }}
+              onFocus={() => {
+                onFocus()
+                onSearchChange(field.state.value)
+              }}
+              onBlur={onBlur}
+              onKeyDown={(e) => {
+                if (e.key === 'ArrowDown' && filteredSuggestions.length > 0) {
+                  e.preventDefault()
+                  suggestionsRef.current?.querySelector('button')?.focus()
+                }
+              }}
+              placeholder="Type to search Pokemon..."
+              aria-label={`Pokemon ${index + 1}`}
+              aria-autocomplete="list"
+              aria-expanded={isActive && filteredSuggestions.length > 0}
+              aria-controls={`suggestions-${index}`}
+              className={`w-full px-4 py-2 border rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                isDuplicate
+                  ? 'border-red-500 dark:border-red-600'
+                  : 'border-gray-300 dark:border-gray-600'
+              }`}
+            />
+            {isSearching && (
+              <div className="absolute right-3 top-2.5">
+                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
+              </div>
+            )}
+          </div>
+
+          {/* Autocomplete Suggestions */}
+          {isActive && filteredSuggestions.length > 0 && searchQuery.length >= 2 && (
+            <div
+              id={`suggestions-${index}`}
+              ref={suggestionsRef}
+              role="listbox"
+              className="absolute z-10 w-full mt-1 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg shadow-lg max-h-48 overflow-auto"
+            >
+              {filteredSuggestions.slice(0, 10).map((suggestion) => (
+                <button
+                  key={suggestion}
+                  type="button"
+                  role="option"
+                  onClick={() => {
+                    field.handleChange(suggestion)
+                    onSearchChange('')
+                    inputRef.current?.blur()
+                  }}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault()
+                      field.handleChange(suggestion)
+                      onSearchChange('')
+                      inputRef.current?.blur()
+                    }
+                  }}
+                  className="w-full text-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 focus:bg-gray-100 dark:focus:bg-gray-700 focus:outline-none capitalize"
+                >
+                  {suggestion}
+                </button>
+              ))}
+            </div>
+          )}
+
+          {/* Field Errors */}
+          {field.state.meta.errors && (
+            <p className="mt-1 text-sm text-red-600 dark:text-red-400" role="alert">
+              {field.state.meta.errors[0]}
+            </p>
+          )}
+        </div>
+      )}
+    </form.Field>
+  )
+}
+
 export const Route = createFileRoute('/form')({
   component: PokemonTeamForm,
+  validateSearch: (search: Record<string, unknown>) => {
+    return {
+      pokemon: (search.pokemon as string) || undefined,
+    }
+  },
 })
 
 function PokemonTeamForm() {
   const queryClient = useQueryClient()
   const [submitMessage, setSubmitMessage] = useState<string | null>(null)
+  const [activeAutocompleteIndex, setActiveAutocompleteIndex] = useState<number | null>(null)
+  const [searchQueries, setSearchQueries] = useState<Record<number, string>>({})
+  const search = Route.useSearch()
+
+  // Initialize form with Pokemon from URL if provided
+  const initialTeam = useMemo(() => {
+    const team = ['', '', '', '', '', '']
+    if (search.pokemon) {
+      team[0] = search.pokemon
+    }
+    return team
+  }, [search.pokemon])
 
   const form = useForm<TeamForm>({
     defaultValues: {
-      team: ['', '', '', '', '', ''],
+      team: initialTeam,
     },
     validators: {
       onChange: ({ value }) => {
+        // Check for duplicates
+        const duplicates = value.team.filter(
+          (pokemon, index) => pokemon && value.team.indexOf(pokemon) !== index
+        )
+        if (duplicates.length > 0) {
+          return 'Duplicate Pokemon detected. Each Pokemon can only be in your team once.'
+        }
+
         const result = teamSchema.safeParse(value)
         if (!result.success) {
           const firstError = result.error.errors[0]
@@ -49,18 +243,59 @@ function PokemonTeamForm() {
     },
   })
 
+  // Optimistic mutation with rollback
   const mutation = useMutation({
     mutationFn: submitTeam,
+    onMutate: async (newTeam) => {
+      // Cancel outgoing refetches
+      await queryClient.cancelQueries({ queryKey: ['team'] })
+      
+      // Snapshot previous value
+      const previousTeam = queryClient.getQueryData<string[]>(['team'])
+      
+      // Optimistically update
+      queryClient.setQueryData(['team'], newTeam)
+      
+      return { previousTeam }
+    },
     onSuccess: (data) => {
       setSubmitMessage(data.message)
+      // Persist team to localStorage
+      const team = form.state.values.team.filter(Boolean)
+      localStorage.setItem('savedTeam', JSON.stringify(team))
       form.reset()
-      // Invalidate queries to refetch if needed
       queryClient.invalidateQueries({ queryKey: ['pokemon'] })
     },
-    onError: (error) => {
+    onError: (error, _newTeam, context) => {
+      // Rollback on error
+      if (context?.previousTeam) {
+        queryClient.setQueryData(['team'], context.previousTeam)
+      }
       setSubmitMessage(`Error: ${error.message}`)
     },
   })
+
+  // Load saved team on mount (only if no Pokemon from URL)
+  useEffect(() => {
+    if (search.pokemon) {
+      // If Pokemon from URL, focus on the first field
+      setActiveAutocompleteIndex(0)
+      return
+    }
+
+    const saved = localStorage.getItem('savedTeam')
+    if (saved) {
+      try {
+        const team = JSON.parse(saved)
+        if (Array.isArray(team) && team.length > 0) {
+          const paddedTeam = [...team, ...Array(6 - team.length).fill('')].slice(0, 6)
+          form.setFieldValue('team', paddedTeam)
+        }
+      } catch (e) {
+        // Ignore parse errors
+      }
+    }
+  }, [search.pokemon, form])
 
   return (
     <div className="px-4 py-6 max-w-2xl mx-auto">
@@ -80,38 +315,17 @@ function PokemonTeamForm() {
         className="space-y-6"
       >
         {form.state.values.team.map((_, index) => (
-          <form.Field
+          <PokemonAutocompleteField
             key={index}
-            name={`team[${index}]` as const}
-            validators={{
-              onChange: ({ value }) => {
-                if (!value || value.length === 0) {
-                  return 'Pokemon name is required'
-                }
-                return undefined
-              },
-            }}
-          >
-            {(field) => (
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  Pokemon {index + 1}
-                </label>
-                <input
-                  value={field.state.value}
-                  onChange={(e) => field.handleChange(e.target.value)}
-                  onBlur={field.handleBlur}
-                  placeholder="Enter Pokemon name"
-                  className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
-                {field.state.meta.errors && (
-                  <p className="mt-1 text-sm text-red-600 dark:text-red-400">
-                    {field.state.meta.errors[0]}
-                  </p>
-                )}
-              </div>
-            )}
-          </form.Field>
+            index={index}
+            form={form}
+            searchQuery={searchQueries[index] || ''}
+            onSearchChange={(query) => setSearchQueries({ ...searchQueries, [index]: query })}
+            isActive={activeAutocompleteIndex === index}
+            onFocus={() => setActiveAutocompleteIndex(index)}
+            onBlur={() => setTimeout(() => setActiveAutocompleteIndex(null), 200)}
+            teamValues={form.state.values.team}
+          />
         ))}
 
         {form.state.errors.length > 0 && (
@@ -152,6 +366,23 @@ function PokemonTeamForm() {
           </button>
         </div>
       </form>
+
+      {/* Save Team Button */}
+      <div className="mt-4 flex gap-2">
+        <button
+          type="button"
+          onClick={() => {
+            const team = form.state.values.team.filter(Boolean)
+            localStorage.setItem('savedTeam', JSON.stringify(team))
+            setSubmitMessage('Team saved locally!')
+            setTimeout(() => setSubmitMessage(null), 3000)
+          }}
+          className="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-green-500"
+          aria-label="Save team to local storage"
+        >
+          💾 Save Team
+        </button>
+      </div>
 
       <div className="mt-8">
         <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-4">
