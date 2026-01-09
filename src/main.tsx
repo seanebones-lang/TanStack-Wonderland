@@ -75,6 +75,9 @@ if (!rootElement) {
   throw new Error('Root element not found')
 }
 
+// Show a loading indicator immediately
+rootElement.innerHTML = '<div style="padding: 2rem; text-align: center; font-family: system-ui;"><p>Loading TanStack Wonderland...</p></div>'
+
 console.log('Starting app initialization...')
 console.log('Router:', router)
 console.log('QueryClient:', queryClient)
