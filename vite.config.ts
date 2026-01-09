@@ -52,13 +52,7 @@ export default defineConfig({
       },
     },
     sourcemap: true,
-    minify: 'terser',
-    terserOptions: {
-      compress: {
-        drop_console: true,
-        drop_debugger: true,
-      },
-    },
+    minify: 'esbuild', // Use esbuild (default, faster) instead of terser
     chunkSizeWarningLimit: 1000,
   },
   server: {
