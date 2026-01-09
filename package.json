@@ -1,0 +1,36 @@
+{
+  "name": "tanstack-wonderland",
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@tanstack/react-form": "^0.35.0",
+    "@tanstack/react-query": "^5.60.5",
+    "@tanstack/react-query-devtools": "^5.60.5",
+    "@tanstack/react-router": "^1.49.0",
+    "@tanstack/react-table": "^8.20.5",
+    "@tanstack/react-virtual": "^3.1.2",
+    "@tanstack/zod-form-adapter": "^0.42.1",
+    "@vitejs/plugin-react": "^4.3.4",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "vite": "^6.4.0",
+    "vite-tsconfig-paths": "^5.0.1",
+    "zod": "^3.23.8"
+  },
+  "devDependencies": {
+    "@tanstack/router-plugin": "^1.146.2",
+    "@types/node": "^25.0.3",
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
+    "autoprefixer": "^10.4.20",
+    "msw": "^2.6.4",
+    "postcss": "^8.4.49",
+    "tailwindcss": "^3.4.14",
+    "typescript": "^5.7.3"
+  }
+}
