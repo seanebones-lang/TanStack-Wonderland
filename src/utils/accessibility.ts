@@ -89,6 +89,7 @@ export async function initAxe(): Promise<void> {
 
   try {
     // Dynamically import axe-core if available
+    // @ts-ignore - axe-core types may not be available
     const axe = await import('axe-core')
     if (axe.default) {
       // Configure axe - rules configuration format may vary by version

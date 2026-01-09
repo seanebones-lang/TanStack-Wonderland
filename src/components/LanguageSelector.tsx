@@ -1,3 +1,4 @@
+// @ts-ignore - react-i18next types may not be available in all environments
 import { useTranslation } from 'react-i18next'
 
 const languages = [

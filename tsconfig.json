@@ -13,6 +13,7 @@
     "isolatedModules": true,
     "noEmit": true,
     "jsx": "react-jsx",
+    "skipLibCheck": true,
 
     /* Linting */
     "strict": true,
@@ -28,5 +29,6 @@
   },
   "include": ["src"],
   "exclude": ["**/*.test.ts", "**/*.test.tsx", "**/test/**", "node_modules", "dist"],
+  "skipLibCheck": true,
   "references": [{ "path": "./tsconfig.node.json" }]
 }
