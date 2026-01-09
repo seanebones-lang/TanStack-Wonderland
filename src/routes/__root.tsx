@@ -1,6 +1,9 @@
 import { createRootRoute, Link, Outlet, useRouterState } from '@tanstack/react-router'
 import { router } from '../router'
 import { useState, useEffect } from 'react'
+import { ErrorBoundary } from '../components/ErrorBoundary'
+import { LanguageSelector } from '../components/LanguageSelector'
+import { Chatbot } from '../components/Chatbot'
 
 function Navigation() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
@@ -43,7 +46,7 @@ function Navigation() {
           </div>
 
           {/* Desktop Navigation */}
-          <div className="hidden md:flex md:space-x-8">
+          <div className="hidden md:flex md:items-center md:space-x-8">
             {navLinks.map((link) => (
               <Link
                 key={link.to}
@@ -57,18 +60,22 @@ function Navigation() {
                 {link.label}
               </Link>
             ))}
+            <LanguageSelector />
           </div>
 
-          {/* Mobile Menu Button */}
-          <button
-            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-            className="md:hidden p-2 rounded-md text-gray-900 dark:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
-            aria-label="Toggle mobile menu"
-            aria-expanded={isMobileMenuOpen}
-            aria-controls="mobile-menu"
-          >
-            <span className="text-2xl">{isMobileMenuOpen ? '✕' : '☰'}</span>
-          </button>
+          {/* Mobile Menu Button & Language Selector */}
+          <div className="md:hidden flex items-center gap-2">
+            <LanguageSelector />
+            <button
+              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+              className="p-2 rounded-md text-gray-900 dark:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              aria-label="Toggle mobile menu"
+              aria-expanded={isMobileMenuOpen}
+              aria-controls="mobile-menu"
+            >
+              <span className="text-2xl">{isMobileMenuOpen ? '✕' : '☰'}</span>
+            </button>
+          </div>
         </div>
 
         {/* Mobile Menu */}
@@ -147,13 +154,18 @@ function Breadcrumbs() {
 
 export const Route = createRootRoute({
   component: () => (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-      <Navigation />
-      <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
-        <Breadcrumbs />
-        <Outlet />
-      </main>
-    </div>
+    <ErrorBoundary>
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+        <Navigation />
+        <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
+          <Breadcrumbs />
+          <ErrorBoundary>
+            <Outlet />
+          </ErrorBoundary>
+        </main>
+        <Chatbot />
+      </div>
+    </ErrorBoundary>
   ),
   errorComponent: ({ error }) => (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center" role="alert">
@@ -164,11 +176,13 @@ export const Route = createRootRoute({
         <p className="text-gray-600 dark:text-gray-400 mb-4">{error.message}</p>
         <div className="flex gap-4 justify-center">
           <button
-            onClick={() => window.location.reload()}
+            onClick={() => {
+              window.location.href = '/'
+            }}
             className="btn focus:outline-none focus:ring-2 focus:ring-blue-500"
-            aria-label="Reload page"
+            aria-label="Go to home page"
           >
-            Reload Page
+            Go to Home
           </button>
           <Link
             to="/"

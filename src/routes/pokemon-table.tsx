@@ -1,5 +1,5 @@
 import { createFileRoute } from '@tanstack/react-router'
-import { useInfiniteQuery } from '@tanstack/react-query'
+import { useInfiniteQuery, useQueryClient } from '@tanstack/react-query'
 import {
   useReactTable,
   getCoreRowModel,
@@ -13,6 +13,8 @@ import {
 } from '@tanstack/react-table'
 import { useVirtualizer } from '@tanstack/react-virtual'
 import { useMemo, useRef, useState, useEffect } from 'react'
+import { rateLimitedFetch } from '../utils/rateLimiter'
+import { sanitizeSearchQuery } from '../utils/inputValidation'
 
 interface Pokemon {
   name: string
@@ -27,7 +29,7 @@ interface PokemonResponse {
 const fetchPokemon = async ({ pageParam = 0 }): Promise<PokemonResponse & { nextPage: number }> => {
   const limit = 20
   const offset = pageParam * limit
-  const response = await fetch(`https://pokeapi.co/api/v2/pokemon?limit=${limit}&offset=${offset}`)
+  const response = await rateLimitedFetch(`https://pokeapi.co/api/v2/pokemon?limit=${limit}&offset=${offset}`)
   if (!response.ok) {
     throw new Error('Failed to fetch Pokemon')
   }
@@ -65,6 +67,7 @@ function PokemonTable() {
   const [rowSelection, setRowSelection] = useState<RowSelectionState>({})
   const [isColumnMenuOpen, setIsColumnMenuOpen] = useState(false)
   const parentRef = useRef<HTMLDivElement>(null)
+  const queryClient = useQueryClient()
 
   const { data, fetchNextPage, isFetchingNextPage, isPending, error } = useInfiniteQuery({
     queryKey: ['pokemon', 'infinite'],
@@ -196,7 +199,9 @@ function PokemonTable() {
       <div role="alert" className="text-red-600 dark:text-red-400 text-center py-12">
         <p className="text-lg font-semibold mb-2">Error loading Pokemon: {error.message}</p>
         <button
-          onClick={() => window.location.reload()}
+          onClick={() => {
+            queryClient.invalidateQueries({ queryKey: ['pokemon', 'infinite'] })
+          }}
           className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
         >
           Retry
@@ -217,7 +222,10 @@ function PokemonTable() {
           <input
             type="text"
             value={globalFilter}
-            onChange={(e) => setGlobalFilter(e.target.value)}
+            onChange={(e) => {
+              const sanitized = sanitizeSearchQuery(e.target.value)
+              setGlobalFilter(sanitized)
+            }}
             placeholder="Search Pokemon..."
             aria-label="Search Pokemon"
             className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -336,7 +344,7 @@ function PokemonTable() {
             style={{
               height: `${rowVirtualizer.getTotalSize()}px`,
               position: 'relative',
-            }}
+            } as React.CSSProperties}
           >
             {virtualRows.map((virtualRow) => {
               const row = rows[virtualRow.index]
@@ -351,7 +359,7 @@ function PokemonTable() {
                     left: 0,
                     width: '100%',
                     transform: `translateY(${virtualRow.start}px)`,
-                  }}
+                  } as React.CSSProperties}
                   className={`border-b border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800 ${
                     row.getIsSelected() ? 'bg-blue-50 dark:bg-blue-900/20' : ''
                   }`}

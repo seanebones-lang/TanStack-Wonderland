@@ -9,6 +9,7 @@ TanStack Wonderland is a dynamic web dashboard showcasing the entire TanStack ec
 - **TanStack Table**: Virtualized table with sorting and filtering
 - **TanStack Virtual**: High-performance virtualization for large lists
 - **TanStack Form**: Form management with Zod validation
+- **Eleven Chatbot**: AI-powered assistant (powered by NextEleven) with comprehensive TanStack knowledge
 - **Tailwind CSS**: Modern, responsive styling with dark mode support
 - **TypeScript**: Full type safety throughout the application
 
@@ -45,17 +46,28 @@ cd TanStack-Wonderland
 npm install --legacy-peer-deps
 ```
 
-3. Start the development server:
+3. (Optional) Set up Grok AI API for the chatbot:
+   - Create a `.env.local` file in the root directory
+   - Add your Grok API key: `VITE_GROK_API_KEY=your_api_key_here`
+   - Get your API key from: https://x.ai/api
+   - Note: The chatbot will work with mock responses if no API key is provided
+
+4. Start the development server:
 ```bash
 npm run dev
 ```
 
-4. Open your browser and navigate to `http://localhost:5173`
+5. Open your browser and navigate to `http://localhost:5173`
 
 ## 📁 Project Structure
 
 ```
 src/
+├── components/       # Reusable React components
+│   ├── Chatbot.tsx  # Eleven AI chatbot component
+│   ├── ErrorBoundary.tsx
+│   ├── LanguageSelector.tsx
+│   └── Toast.tsx
 ├── routes/           # TanStack Router file-based routes
 │   ├── __root.tsx    # Root layout with navigation
 │   ├── index.tsx     # Home page with Pokemon grid
@@ -85,6 +97,13 @@ src/
 - Zod validation with TanStack Form
 - Optimistic updates with mutations
 - Real-time form validation
+
+### Eleven Chatbot
+- AI-powered assistant named "Eleven" (powered by NextEleven)
+- Comprehensive knowledge of TanStack ecosystem
+- Expert guidance on implementing TanStack libraries in enterprise software
+- Accessible via floating chat button on all pages
+- Responsive design for mobile and desktop
 
 ## 🧪 Testing
 

@@ -1,0 +1,42 @@
+{
+  "name": "TanStack Wonderland",
+  "short_name": "TanStack Wonderland",
+  "description": "Explore the TanStack ecosystem with Pokemon data",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#3b82f6",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["entertainment", "games"],
+  "screenshots": [],
+  "shortcuts": [
+    {
+      "name": "Pokemon Table",
+      "short_name": "Table",
+      "description": "View Pokemon in a table",
+      "url": "/pokemon-table",
+      "icons": [{ "src": "/icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Team Builder",
+      "short_name": "Team",
+      "description": "Build your Pokemon team",
+      "url": "/form",
+      "icons": [{ "src": "/icon-192.png", "sizes": "192x192" }]
+    }
+  ]
+}

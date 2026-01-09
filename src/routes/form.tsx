@@ -3,6 +3,8 @@ import { useForm } from '@tanstack/react-form'
 import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query'
 import { z } from 'zod'
 import { useState, useMemo, useRef, useEffect } from 'react'
+import { rateLimitedFetch } from '../utils/rateLimiter'
+import { isValidPokemonName, sanitizeSearchQuery } from '../utils/inputValidation'
 
 const teamSchema = z.object({
   team: z.array(z.string().min(1, 'Pokemon name is required')).min(6, 'You must select at least 6 Pokemon'),
@@ -25,12 +27,17 @@ const submitTeam = async (team: string[]): Promise<{ success: boolean; message: 
 // Search Pokemon for autocomplete
 const searchPokemon = async (query: string): Promise<string[]> => {
   if (query.length < 2) return []
-  const response = await fetch(`https://pokeapi.co/api/v2/pokemon?limit=1000`)
+  const sanitizedQuery = sanitizeSearchQuery(query)
+  const response = await rateLimitedFetch(`https://pokeapi.co/api/v2/pokemon?limit=1000`)
   if (!response.ok) return []
   const data = await response.json()
   return data.results
     .map((p: { name: string }) => p.name)
-    .filter((name: string) => name.toLowerCase().includes(query.toLowerCase()))
+    .filter((name: string) => {
+      // Validate Pokemon name
+      if (!isValidPokemonName(name)) return false
+      return name.toLowerCase().includes(sanitizedQuery.toLowerCase())
+    })
     .slice(0, 10)
 }
 
@@ -73,8 +80,8 @@ function PokemonAutocompleteField({
 
   const isDuplicate = useMemo(() => {
     const value = form.state.values.team[index]
-    return value && teamValues.filter((p) => p === value).length > 1
-  }, [teamValues, index])
+    return !!(value && teamValues.filter((p) => p === value).length > 1)
+  }, [teamValues, index, form.state.values.team])
 
   return (
     <form.Field

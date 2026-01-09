@@ -1,0 +1,91 @@
+{
+  "common": {
+    "loading": "Chargement...",
+    "error": "Erreur",
+    "retry": "Réessayer",
+    "save": "Enregistrer",
+    "cancel": "Annuler",
+    "submit": "Soumettre",
+    "reset": "Réinitialiser",
+    "search": "Rechercher",
+    "filter": "Filtrer",
+    "export": "Exporter",
+    "share": "Partager",
+    "close": "Fermer"
+  },
+  "nav": {
+    "home": "Accueil",
+    "table": "Tableau",
+    "form": "Formulaire",
+    "pokemonTable": "Tableau Pokemon",
+    "teamBuilder": "Constructeur d'Équipe"
+  },
+  "home": {
+    "title": "Bienvenue dans TanStack Wonderland",
+    "subtitle": "Explorez l'écosystème TanStack avec des données Pokemon !",
+    "searchPlaceholder": "Rechercher Pokemon...",
+    "showing": "Affichage de {{count}} sur {{total}} Pokemon",
+    "matching": "correspondant à \"{{query}}\""
+  },
+  "pokemon": {
+    "detail": "Détail Pokemon",
+    "types": "Types",
+    "stats": "Statistiques de Base",
+    "abilities": "Capacités",
+    "hidden": "Cachée",
+    "height": "Taille",
+    "weight": "Poids",
+    "baseExperience": "Expérience de Base",
+    "previous": "Précédent",
+    "next": "Suivant",
+    "shiny": "Chromatique",
+    "normal": "Normal",
+    "form": "forme",
+    "shareLink": "Partager le lien Pokemon",
+    "addToTeam": "Ajouter à l'Équipe",
+    "keyboardHint": "💡 Utilisez les flèches (← →) pour naviguer entre les Pokemon",
+    "viewAll": "Voir tous les Pokemon dans le Tableau →"
+  },
+  "table": {
+    "title": "Tableau Pokemon",
+    "searchPlaceholder": "Rechercher Pokemon...",
+    "selectAll": "Sélectionner toutes les lignes",
+    "selectRow": "Sélectionner {{name}}",
+    "toggleColumns": "Basculer la visibilité des colonnes",
+    "exportCSV": "Exporter en CSV",
+    "loadMore": "Charger Plus",
+    "loading": "Chargement...",
+    "showing": "Affichage de {{count}} sur {{total}} Pokemon",
+    "matching": "correspondant à \"{{query}}\"",
+    "selected": "{{count}} sélectionnés"
+  },
+  "form": {
+    "title": "Constructeur d'Équipe Pokemon",
+    "subtitle": "Construisez votre équipe de 6 Pokemon",
+    "pokemonSlot": "Pokemon {{number}}",
+    "duplicate": "(Dupliqué)",
+    "searchPlaceholder": "Tapez pour rechercher Pokemon...",
+    "submitTeam": "Soumettre l'Équipe",
+    "submitting": "Soumission...",
+    "teamSaved": "Équipe enregistrée localement !",
+    "teamSubmitted": "Équipe soumise avec succès avec {{count}} Pokemon !",
+    "teamPreview": "Aperçu de l'Équipe",
+    "slot": "Emplacement {{number}}",
+    "empty": "Vide",
+    "saveTeam": "Enregistrer l'Équipe",
+    "saveTeamLabel": "Enregistrer l'équipe dans le stockage local"
+  },
+  "errors": {
+    "loadingPokemon": "Erreur lors du chargement Pokemon",
+    "failedToFetch": "Échec de la récupération Pokemon",
+    "networkError": "Erreur réseau",
+    "invalidPokemonId": "ID Pokemon invalide",
+    "duplicatePokemon": "Ce Pokemon est déjà dans votre équipe",
+    "minPokemonRequired": "Vous devez sélectionner au moins 6 Pokemon",
+    "rateLimitExceeded": "Limite de débit dépassée. Veuillez attendre avant de réessayer."
+  },
+  "success": {
+    "linkCopied": "Lien copié dans le presse-papiers !",
+    "teamSaved": "Équipe enregistrée avec succès !"
+  }
+}

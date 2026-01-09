@@ -1,0 +1,12 @@
+{
+  "entryPoints": ["src"],
+  "out": "docs",
+  "exclude": ["**/*.test.ts", "**/*.test.tsx", "**/*.spec.ts", "**/*.spec.tsx", "node_modules"],
+  "includeVersion": true,
+  "readme": "README.md",
+  "name": "TanStack Wonderland API Documentation",
+  "theme": "default",
+  "excludePrivate": true,
+  "excludeProtected": false,
+  "excludeInternal": true
+}

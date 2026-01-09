@@ -1,0 +1,91 @@
+{
+  "common": {
+    "loading": "Lädt...",
+    "error": "Fehler",
+    "retry": "Wiederholen",
+    "save": "Speichern",
+    "cancel": "Abbrechen",
+    "submit": "Einreichen",
+    "reset": "Zurücksetzen",
+    "search": "Suchen",
+    "filter": "Filtern",
+    "export": "Exportieren",
+    "share": "Teilen",
+    "close": "Schließen"
+  },
+  "nav": {
+    "home": "Startseite",
+    "table": "Tabelle",
+    "form": "Formular",
+    "pokemonTable": "Pokemon Tabelle",
+    "teamBuilder": "Team Builder"
+  },
+  "home": {
+    "title": "Willkommen in TanStack Wonderland",
+    "subtitle": "Erkunden Sie das TanStack Ökosystem mit Pokemon-Daten!",
+    "searchPlaceholder": "Pokemon suchen...",
+    "showing": "Zeige {{count}} von {{total}} Pokemon",
+    "matching": "passend zu \"{{query}}\""
+  },
+  "pokemon": {
+    "detail": "Pokemon Detail",
+    "types": "Typen",
+    "stats": "Basis-Statistiken",
+    "abilities": "Fähigkeiten",
+    "hidden": "Versteckt",
+    "height": "Höhe",
+    "weight": "Gewicht",
+    "baseExperience": "Basis-Erfahrung",
+    "previous": "Vorherige",
+    "next": "Nächste",
+    "shiny": "Schillernd",
+    "normal": "Normal",
+    "form": "Form",
+    "shareLink": "Pokemon-Link teilen",
+    "addToTeam": "Zum Team hinzufügen",
+    "keyboardHint": "💡 Verwenden Sie die Pfeiltasten (← →), um zwischen Pokemon zu navigieren",
+    "viewAll": "Alle Pokemon in der Tabelle anzeigen →"
+  },
+  "table": {
+    "title": "Pokemon Tabelle",
+    "searchPlaceholder": "Pokemon suchen...",
+    "selectAll": "Alle Zeilen auswählen",
+    "selectRow": "{{name}} auswählen",
+    "toggleColumns": "Spaltensichtbarkeit umschalten",
+    "exportCSV": "Als CSV exportieren",
+    "loadMore": "Mehr laden",
+    "loading": "Lädt...",
+    "showing": "Zeige {{count}} von {{total}} Pokemon",
+    "matching": "passend zu \"{{query}}\"",
+    "selected": "{{count}} ausgewählt"
+  },
+  "form": {
+    "title": "Pokemon Team Builder",
+    "subtitle": "Erstellen Sie Ihr Team aus 6 Pokemon",
+    "pokemonSlot": "Pokemon {{number}}",
+    "duplicate": "(Duplikat)",
+    "searchPlaceholder": "Tippen Sie, um Pokemon zu suchen...",
+    "submitTeam": "Team einreichen",
+    "submitting": "Wird eingereicht...",
+    "teamSaved": "Team lokal gespeichert!",
+    "teamSubmitted": "Team erfolgreich mit {{count}} Pokemon eingereicht!",
+    "teamPreview": "Team-Vorschau",
+    "slot": "Slot {{number}}",
+    "empty": "Leer",
+    "saveTeam": "Team speichern",
+    "saveTeamLabel": "Team im lokalen Speicher speichern"
+  },
+  "errors": {
+    "loadingPokemon": "Fehler beim Laden von Pokemon",
+    "failedToFetch": "Fehler beim Abrufen von Pokemon",
+    "networkError": "Netzwerkfehler",
+    "invalidPokemonId": "Ungültige Pokemon-ID",
+    "duplicatePokemon": "Dieses Pokemon ist bereits in Ihrem Team",
+    "minPokemonRequired": "Sie müssen mindestens 6 Pokemon auswählen",
+    "rateLimitExceeded": "Rate-Limit überschritten. Bitte warten Sie, bevor Sie es erneut versuchen."
+  },
+  "success": {
+    "linkCopied": "Link in die Zwischenablage kopiert!",
+    "teamSaved": "Team erfolgreich gespeichert!"
+  }
+}

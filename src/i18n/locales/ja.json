@@ -1,0 +1,91 @@
+{
+  "common": {
+    "loading": "読み込み中...",
+    "error": "エラー",
+    "retry": "再試行",
+    "save": "保存",
+    "cancel": "キャンセル",
+    "submit": "送信",
+    "reset": "リセット",
+    "search": "検索",
+    "filter": "フィルター",
+    "export": "エクスポート",
+    "share": "共有",
+    "close": "閉じる"
+  },
+  "nav": {
+    "home": "ホーム",
+    "table": "テーブル",
+    "form": "フォーム",
+    "pokemonTable": "ポケモンテーブル",
+    "teamBuilder": "チームビルダー"
+  },
+  "home": {
+    "title": "TanStack Wonderlandへようこそ",
+    "subtitle": "ポケモンデータでTanStackエコシステムを探索しましょう！",
+    "searchPlaceholder": "ポケモンを検索...",
+    "showing": "{{total}}匹中{{count}}匹を表示",
+    "matching": "\"{{query}}\"に一致"
+  },
+  "pokemon": {
+    "detail": "ポケモン詳細",
+    "types": "タイプ",
+    "stats": "基礎ステータス",
+    "abilities": "特性",
+    "hidden": "隠れ特性",
+    "height": "高さ",
+    "weight": "重さ",
+    "baseExperience": "基礎経験値",
+    "previous": "前へ",
+    "next": "次へ",
+    "shiny": "色違い",
+    "normal": "通常",
+    "form": "フォーム",
+    "shareLink": "ポケモンリンクを共有",
+    "addToTeam": "チームに追加",
+    "keyboardHint": "💡 矢印キー（← →）を使用してポケモン間を移動",
+    "viewAll": "テーブルですべてのポケモンを表示 →"
+  },
+  "table": {
+    "title": "ポケモンテーブル",
+    "searchPlaceholder": "ポケモンを検索...",
+    "selectAll": "すべての行を選択",
+    "selectRow": "{{name}}を選択",
+    "toggleColumns": "列の表示を切り替え",
+    "exportCSV": "CSVにエクスポート",
+    "loadMore": "さらに読み込む",
+    "loading": "読み込み中...",
+    "showing": "{{total}}匹中{{count}}匹を表示",
+    "matching": "\"{{query}}\"に一致",
+    "selected": "{{count}}件選択"
+  },
+  "form": {
+    "title": "ポケモンチームビルダー",
+    "subtitle": "6匹のポケモンでチームを作成",
+    "pokemonSlot": "ポケモン{{number}}",
+    "duplicate": "（重複）",
+    "searchPlaceholder": "入力してポケモンを検索...",
+    "submitTeam": "チームを送信",
+    "submitting": "送信中...",
+    "teamSaved": "チームをローカルに保存しました！",
+    "teamSubmitted": "{{count}}匹のポケモンでチームを正常に送信しました！",
+    "teamPreview": "チームプレビュー",
+    "slot": "スロット{{number}}",
+    "empty": "空",
+    "saveTeam": "チームを保存",
+    "saveTeamLabel": "チームをローカルストレージに保存"
+  },
+  "errors": {
+    "loadingPokemon": "ポケモンの読み込みエラー",
+    "failedToFetch": "ポケモンの取得に失敗",
+    "networkError": "ネットワークエラー",
+    "invalidPokemonId": "無効なポケモンID",
+    "duplicatePokemon": "このポケモンは既にチームにいます",
+    "minPokemonRequired": "少なくとも6匹のポケモンを選択する必要があります",
+    "rateLimitExceeded": "レート制限を超えました。再試行する前にしばらくお待ちください。"
+  },
+  "success": {
+    "linkCopied": "リンクをクリップボードにコピーしました！",
+    "teamSaved": "チームを正常に保存しました！"
+  }
+}

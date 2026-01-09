@@ -1,0 +1,91 @@
+{
+  "common": {
+    "loading": "Cargando...",
+    "error": "Error",
+    "retry": "Reintentar",
+    "save": "Guardar",
+    "cancel": "Cancelar",
+    "submit": "Enviar",
+    "reset": "Restablecer",
+    "search": "Buscar",
+    "filter": "Filtrar",
+    "export": "Exportar",
+    "share": "Compartir",
+    "close": "Cerrar"
+  },
+  "nav": {
+    "home": "Inicio",
+    "table": "Tabla",
+    "form": "Formulario",
+    "pokemonTable": "Tabla de Pokemon",
+    "teamBuilder": "Constructor de Equipo"
+  },
+  "home": {
+    "title": "Bienvenido a TanStack Wonderland",
+    "subtitle": "¡Explora el ecosistema TanStack con datos de Pokemon!",
+    "searchPlaceholder": "Buscar Pokemon...",
+    "showing": "Mostrando {{count}} de {{total}} Pokemon",
+    "matching": "coincidiendo con \"{{query}}\""
+  },
+  "pokemon": {
+    "detail": "Detalle de Pokemon",
+    "types": "Tipos",
+    "stats": "Estadísticas Base",
+    "abilities": "Habilidades",
+    "hidden": "Oculta",
+    "height": "Altura",
+    "weight": "Peso",
+    "baseExperience": "Experiencia Base",
+    "previous": "Anterior",
+    "next": "Siguiente",
+    "shiny": "Brillante",
+    "normal": "Normal",
+    "form": "forma",
+    "shareLink": "Compartir enlace de Pokemon",
+    "addToTeam": "Agregar al Equipo",
+    "keyboardHint": "💡 Usa las teclas de flecha (← →) para navegar entre Pokemon",
+    "viewAll": "Ver todos los Pokemon en la Tabla →"
+  },
+  "table": {
+    "title": "Tabla de Pokemon",
+    "searchPlaceholder": "Buscar Pokemon...",
+    "selectAll": "Seleccionar todas las filas",
+    "selectRow": "Seleccionar {{name}}",
+    "toggleColumns": "Alternar visibilidad de columnas",
+    "exportCSV": "Exportar a CSV",
+    "loadMore": "Cargar Más",
+    "loading": "Cargando...",
+    "showing": "Mostrando {{count}} de {{total}} Pokemon",
+    "matching": "coincidiendo con \"{{query}}\"",
+    "selected": "{{count}} seleccionados"
+  },
+  "form": {
+    "title": "Constructor de Equipo Pokemon",
+    "subtitle": "Construye tu equipo de 6 Pokemon",
+    "pokemonSlot": "Pokemon {{number}}",
+    "duplicate": "(Duplicado)",
+    "searchPlaceholder": "Escribe para buscar Pokemon...",
+    "submitTeam": "Enviar Equipo",
+    "submitting": "Enviando...",
+    "teamSaved": "¡Equipo guardado localmente!",
+    "teamSubmitted": "¡Equipo enviado exitosamente con {{count}} Pokemon!",
+    "teamPreview": "Vista Previa del Equipo",
+    "slot": "Ranura {{number}}",
+    "empty": "Vacío",
+    "saveTeam": "Guardar Equipo",
+    "saveTeamLabel": "Guardar equipo en almacenamiento local"
+  },
+  "errors": {
+    "loadingPokemon": "Error al cargar Pokemon",
+    "failedToFetch": "Error al obtener Pokemon",
+    "networkError": "Error de red",
+    "invalidPokemonId": "ID de Pokemon inválido",
+    "duplicatePokemon": "Este Pokemon ya está en tu equipo",
+    "minPokemonRequired": "Debes seleccionar al menos 6 Pokemon",
+    "rateLimitExceeded": "Límite de velocidad excedido. Por favor espera antes de reintentar."
+  },
+  "success": {
+    "linkCopied": "¡Enlace copiado al portapapeles!",
+    "teamSaved": "¡Equipo guardado exitosamente!"
+  }
+}

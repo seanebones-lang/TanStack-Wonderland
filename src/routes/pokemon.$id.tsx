@@ -1,7 +1,63 @@
 import { createFileRoute, Link, useNavigate } from '@tanstack/react-router'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
-import { useMemo, useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useToast } from '../components/Toast'
+import { isValidPokemonId } from '../utils/inputValidation'
+import { rateLimitedFetch } from '../utils/rateLimiter'
+
+const TYPE_COLORS: Record<string, string> = {
+  normal: 'bg-gray-400',
+  fire: 'bg-red-500',
+  water: 'bg-blue-500',
+  electric: 'bg-yellow-400',
+  grass: 'bg-green-500',
+  ice: 'bg-cyan-300',
+  fighting: 'bg-red-700',
+  poison: 'bg-purple-500',
+  ground: 'bg-yellow-600',
+  flying: 'bg-indigo-400',
+  psychic: 'bg-pink-500',
+  bug: 'bg-green-400',
+  rock: 'bg-yellow-700',
+  ghost: 'bg-purple-700',
+  dragon: 'bg-indigo-700',
+  dark: 'bg-gray-800',
+  steel: 'bg-gray-500',
+  fairy: 'bg-pink-300',
+}
+
+function BackToHomeLink() {
+  return (
+    <Link
+      to="/"
+      className="inline-flex items-center text-blue-600 dark:text-blue-400 hover:underline mb-6 focus:outline-none focus:ring-2 focus:ring-blue-500 rounded transition-colors"
+      aria-label="Back to home"
+    >
+      ← Back to Home
+    </Link>
+  )
+}
+
+function StatBar({ value, max = 255, label }: { value: number; max?: number; label: string }) {
+  const barRef = useRef<HTMLDivElement>(null)
+  const percentage = Math.min((value / max) * 100, 100)
+
+  useEffect(() => {
+    if (barRef.current) {
+      barRef.current.style.width = `${percentage}%`
+    }
+  }, [percentage])
+
+  return (
+    <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2" role="presentation">
+      <div
+        ref={barRef}
+        className="stat-bar"
+        aria-label={label}
+      />
+    </div>
+  )
+}
 
 interface PokemonDetail {
   id: number
@@ -33,7 +89,13 @@ interface PokemonDetail {
 }
 
 const fetchPokemonDetail = async (id: string): Promise<PokemonDetail> => {
-  const response = await fetch(`https://pokeapi.co/api/v2/pokemon/${id}`)
+  // Validate Pokemon ID
+  if (!isValidPokemonId(id)) {
+    throw new Error(`Invalid Pokemon ID: ${id}`)
+  }
+
+  // Use rate-limited fetch
+  const response = await rateLimitedFetch(`https://pokeapi.co/api/v2/pokemon/${id}`)
   if (!response.ok) {
     throw new Error(`Failed to fetch Pokemon: ${id}`)
   }
@@ -115,15 +177,26 @@ function PokemonDetailPage() {
     try {
       await navigator.clipboard.writeText(url)
       showToast('Link copied to clipboard!', 'success')
-    } catch (err) {
-      // Fallback for older browsers
-      const textArea = document.createElement('textarea')
-      textArea.value = url
-      document.body.appendChild(textArea)
-      textArea.select()
-      document.execCommand('copy')
-      document.body.removeChild(textArea)
-      showToast('Link copied to clipboard!', 'success')
+    } catch {
+      // Fallback for older browsers - use modern approach
+      try {
+        const textArea = document.createElement('textarea')
+        textArea.value = url
+        textArea.style.position = 'fixed'
+        textArea.style.opacity = '0'
+        document.body.appendChild(textArea)
+        textArea.focus()
+        textArea.select()
+        const successful = document.execCommand('copy')
+        document.body.removeChild(textArea)
+        if (successful) {
+          showToast('Link copied to clipboard!', 'success')
+        } else {
+          showToast('Failed to copy link', 'error')
+        }
+      } catch {
+        showToast('Failed to copy link', 'error')
+      }
     }
   }
 
@@ -134,39 +207,11 @@ function PokemonDetailPage() {
     }
   }
 
-  const typeColors: Record<string, string> = useMemo(
-    () => ({
-      normal: 'bg-gray-400',
-      fire: 'bg-red-500',
-      water: 'bg-blue-500',
-      electric: 'bg-yellow-400',
-      grass: 'bg-green-500',
-      ice: 'bg-cyan-300',
-      fighting: 'bg-red-700',
-      poison: 'bg-purple-500',
-      ground: 'bg-yellow-600',
-      flying: 'bg-indigo-400',
-      psychic: 'bg-pink-500',
-      bug: 'bg-green-400',
-      rock: 'bg-yellow-700',
-      ghost: 'bg-purple-700',
-      dragon: 'bg-indigo-700',
-      dark: 'bg-gray-800',
-      steel: 'bg-gray-500',
-      fairy: 'bg-pink-300',
-    }),
-    []
-  )
 
   if (isPending) {
     return (
       <div className="px-4 py-6 max-w-4xl mx-auto">
-        <Link
-          to="/"
-          className="inline-flex items-center text-blue-600 dark:text-blue-400 hover:underline mb-6 focus:outline-none focus:ring-2 focus:ring-blue-500 rounded"
-        >
-          ← Back to Home
-        </Link>
+        <BackToHomeLink />
         <SkeletonDetail />
       </div>
     )
@@ -175,12 +220,7 @@ function PokemonDetailPage() {
   if (error) {
     return (
       <div className="px-4 py-6 max-w-4xl mx-auto" role="alert">
-        <Link
-          to="/"
-          className="inline-flex items-center text-blue-600 dark:text-blue-400 hover:underline mb-6 focus:outline-none focus:ring-2 focus:ring-blue-500 rounded"
-        >
-          ← Back to Home
-        </Link>
+        <BackToHomeLink />
         <div className="text-center py-12 space-y-4">
           <h2 className="text-2xl font-bold text-red-600 dark:text-red-400">
             Error loading Pokemon
@@ -202,10 +242,7 @@ function PokemonDetailPage() {
     return null
   }
 
-  const currentSprite = showShiny && pokemon.sprites.front_shiny
-    ? pokemon.sprites.front_shiny
-    : pokemon.sprites.front_default
-
+  const currentSprite = (showShiny && pokemon.sprites.front_shiny) || pokemon.sprites.front_default
   const hasShiny = !!pokemon.sprites.front_shiny
   const prevId = pokemon.id > 1 ? String(pokemon.id - 1) : null
   const nextId = String(pokemon.id + 1)
@@ -214,13 +251,7 @@ function PokemonDetailPage() {
     <div className="px-4 py-6 max-w-4xl mx-auto">
       {/* Navigation Bar */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
-        <Link
-          to="/"
-          className="inline-flex items-center text-blue-600 dark:text-blue-400 hover:underline focus:outline-none focus:ring-2 focus:ring-blue-500 rounded transition-colors"
-          aria-label="Back to home"
-        >
-          ← Back to Home
-        </Link>
+        <BackToHomeLink />
 
         <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
           {/* Previous/Next Navigation */}
@@ -334,7 +365,7 @@ function PokemonDetailPage() {
                   <span
                     key={type.type.name}
                     className={`px-4 py-2 rounded-full text-white font-medium capitalize ${
-                      typeColors[type.type.name] || 'bg-gray-400'
+                      TYPE_COLORS[type.type.name] || 'bg-gray-400'
                     }`}
                   >
                     {type.type.name}
@@ -362,13 +393,11 @@ function PokemonDetailPage() {
                         {stat.base_stat}
                       </span>
                     </div>
-                    <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2" role="presentation">
-                      <div
-                        className="bg-blue-500 h-2 rounded-full transition-all duration-300"
-                        style={{ width: `${Math.min((stat.base_stat / 255) * 100, 100)}%` }}
-                        aria-label={`${stat.stat.name.replace('-', ' ')}: ${stat.base_stat} out of 255`}
-                      ></div>
-                    </div>
+                    <StatBar
+                      value={stat.base_stat}
+                      max={255}
+                      label={`${stat.stat.name.replace('-', ' ')}: ${stat.base_stat} out of 255`}
+                    />
                   </div>
                 ))}
               </div>

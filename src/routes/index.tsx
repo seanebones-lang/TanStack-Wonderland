@@ -1,6 +1,8 @@
 import { createFileRoute, Link } from '@tanstack/react-router'
 import { useInfiniteQuery, useQueryClient } from '@tanstack/react-query'
 import { useMemo, useRef, useState } from 'react'
+import { rateLimitedFetch } from '../utils/rateLimiter'
+import { sanitizeSearchQuery } from '../utils/inputValidation'
 
 interface PokemonListItem {
   name: string
@@ -15,7 +17,7 @@ interface PokemonResponse {
 const fetchPokemon = async ({ pageParam = 0 }): Promise<PokemonResponse & { nextPage: number }> => {
   const limit = 20
   const offset = pageParam * limit
-  const response = await fetch(`https://pokeapi.co/api/v2/pokemon?limit=${limit}&offset=${offset}`)
+  const response = await rateLimitedFetch(`https://pokeapi.co/api/v2/pokemon?limit=${limit}&offset=${offset}`)
   if (!response.ok) {
     throw new Error('Failed to fetch Pokemon')
   }
@@ -36,7 +38,7 @@ function SkeletonCard() {
   )
 }
 
-function PokemonCard({ pokemon }: { pokemon: PokemonListItem; index: number }) {
+function PokemonCard({ pokemon }: { pokemon: PokemonListItem }) {
   const queryClient = useQueryClient()
   const pokemonId = pokemon.url.split('/').filter(Boolean).pop()
 
@@ -46,7 +48,7 @@ function PokemonCard({ pokemon }: { pokemon: PokemonListItem; index: number }) {
       queryClient.prefetchQuery({
         queryKey: ['pokemon', pokemonId],
         queryFn: async () => {
-          const response = await fetch(`https://pokeapi.co/api/v2/pokemon/${pokemonId}`)
+          const response = await rateLimitedFetch(`https://pokeapi.co/api/v2/pokemon/${pokemonId}`)
           if (!response.ok) throw new Error('Failed to fetch')
           return response.json()
         },
@@ -58,7 +60,7 @@ function PokemonCard({ pokemon }: { pokemon: PokemonListItem; index: number }) {
   return (
     <Link
       to="/pokemon/$id"
-      params={{ id: pokemon.name }}
+      params={{ id: pokemonId || pokemon.name }}
       onMouseEnter={handleMouseEnter}
       className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-4 hover:shadow-lg transition-all duration-200 cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
       aria-label={`View details for ${pokemon.name}`}
@@ -86,10 +88,7 @@ function PokemonGrid() {
     getNextPageParam: (lastPage) => lastPage.nextPage,
     placeholderData: (previousData) => previousData, // Keep previous data while fetching
     staleTime: 5 * 60 * 1000, // 5 minutes
-    retry: (failureCount) => {
-      if (failureCount < 3) return true
-      return false
-    },
+    retry: (failureCount) => failureCount < 3,
     retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
   })
 
@@ -100,8 +99,9 @@ function PokemonGrid() {
 
   const filteredData = useMemo(() => {
     if (!searchQuery) return flatData
+    const sanitizedQuery = sanitizeSearchQuery(searchQuery)
     return flatData.filter((pokemon) =>
-      pokemon.name.toLowerCase().includes(searchQuery.toLowerCase())
+      pokemon.name.toLowerCase().includes(sanitizedQuery.toLowerCase())
     )
   }, [flatData, searchQuery])
 
@@ -165,8 +165,8 @@ function PokemonGrid() {
           </div>
         ) : (
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
-            {filteredData.map((pokemon, index) => (
-              <PokemonCard key={`${pokemon.name}-${index}`} pokemon={pokemon} index={index} />
+            {filteredData.map((pokemon) => (
+              <PokemonCard key={pokemon.name} pokemon={pokemon} />
             ))}
           </div>
         )}
