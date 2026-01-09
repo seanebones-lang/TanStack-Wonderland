@@ -2,22 +2,34 @@ import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import { TanStackRouterVite } from '@tanstack/router-plugin/vite'
 import path from 'path'
-// @ts-ignore - vite-bundle-visualizer types may not be available
-// eslint-disable-next-line @typescript-eslint/no-var-requires
-const visualizer = require('vite-bundle-visualizer')
+
+// Conditionally load visualizer only in development
+const plugins = [
+  TanStackRouterVite(),
+  react({}),
+]
+
+// Only add visualizer in development to avoid build issues
+if (process.env.NODE_ENV !== 'production') {
+  try {
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
+    const { visualizer } = require('vite-bundle-visualizer')
+    plugins.push(
+      visualizer({
+        open: false,
+        filename: './stats.html',
+        gzipSize: true,
+        brotliSize: true,
+      })
+    )
+  } catch {
+    // Visualizer not available, skip
+  }
+}
 
 // https://vitejs.dev/config/
 export default defineConfig({
-  plugins: [
-    TanStackRouterVite(),
-    react({}),
-    visualizer({
-      open: false,
-      filename: './stats.html',
-      gzipSize: true,
-      brotliSize: true,
-    }),
-  ],
+  plugins,
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './src'),
